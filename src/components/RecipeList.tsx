@@ -1,4 +1,4 @@
-import { ACTION_ICONS } from '../types';
+import { ACTION_ICONS, ACTION_LABELS } from '../types';
 import type { AnvilRecipe } from '../types';
 
 interface RecipeListProps {
@@ -44,9 +44,9 @@ export function RecipeList({ recipes, onEdit, onDelete }: RecipeListProps) {
               <img
                 key={index}
                 src={ACTION_ICONS[step]}
-                alt={step}
+                alt={ACTION_LABELS[step]}
                 className="w-8 h-8 object-contain bg-gray-900 rounded p-0.5"
-                title={`${index + 1}. ${step}`}
+                title={`${index + 1}. ${ACTION_LABELS[step]}`}
               />
             ))}
           </div>

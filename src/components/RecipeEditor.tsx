@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ACTION_ICONS } from '../types';
+import { ACTION_ICONS, ACTION_LABELS } from '../types';
 import type { AnvilRecipe, AnvilAction } from '../types';
 import { ActionSelector } from './ActionSelector';
 
@@ -69,9 +69,9 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
             <div key={index} className="relative group">
               <img
                 src={ACTION_ICONS[step]}
-                alt={step}
+                alt={ACTION_LABELS[step]}
                 className="w-10 h-10 object-contain bg-gray-700 rounded p-1"
-                title={step}
+                title={ACTION_LABELS[step]}
               />
               <button
                 onClick={() => handleRemoveStep(index)}
