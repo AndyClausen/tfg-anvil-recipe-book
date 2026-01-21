@@ -51,19 +51,18 @@ export function useRecipes() {
           const existingIds = new Set(prev.map(r => r.id));
           const uniqueNewRecipes = newRecipes.filter(r => {
               if (!r.id) {
-                  // If incoming recipe has no ID, generate one?
-                  // Or just warn? Let's generate one to be nice.
                   r.id = crypto.randomUUID();
               }
               return !existingIds.has(r.id);
           });
           
           if (uniqueNewRecipes.length === 0) {
-              alert("No new recipes imported (duplicates ignored).");
-              return prev;
+               // Use setTimeout to break out of the render cycle for the alert
+               setTimeout(() => alert("No new recipes imported (duplicates ignored)."), 0);
+               return prev;
           }
           
-          alert(`Imported ${uniqueNewRecipes.length} new recipes.`);
+          setTimeout(() => alert(`Imported ${uniqueNewRecipes.length} new recipes.`), 0);
           return [...prev, ...uniqueNewRecipes];
       });
     } catch (e) {

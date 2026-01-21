@@ -4,6 +4,7 @@ import type { AnvilRecipe, AnvilAction } from '../types';
 import { ActionSelector } from './ActionSelector';
 import { calculateSequence } from '../utils/calculator';
 import type { CalculatorInstruction, Priority, CalculatorAction } from '../utils/calculator';
+import { ActionDropdown } from './ActionDropdown';
 
 interface RecipeEditorProps {
   initialRecipe?: AnvilRecipe;
@@ -36,8 +37,8 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
   const [targetValue, setTargetValue] = useState<number | string>(initialRecipe?.targetValue || '');
   const [steps, setSteps] = useState<AnvilAction[]>(initialRecipe?.steps || []);
   
-  // Calculator State
-  const [showCalculator, setShowCalculator] = useState(false);
+  // Calculator State - Default to true if creating new recipe (no steps yet)
+  const [showCalculator, setShowCalculator] = useState(!initialRecipe || initialRecipe.steps.length === 0);
   const [calcInstructions, setCalcInstructions] = useState<CalculatorInstruction[]>([]);
 
   const handleAddStep = (action: AnvilAction) => {
@@ -62,6 +63,10 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
   };
 
   const addCalcInstruction = () => {
+    if (calcInstructions.length >= 3) {
+        alert("Maximum of 3 rules allowed.");
+        return;
+    }
     setCalcInstructions([
       ...calcInstructions,
       { id: crypto.randomUUID(), action: 'hit', priority: 'any' }
@@ -129,17 +134,15 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
       {showCalculator ? (
         <div className="mb-6 bg-gray-900 p-4 rounded border border-gray-700">
             <h3 className="font-bold mb-3 text-purple-400">Recipe Calculator</h3>
-            <p className="text-sm text-gray-400 mb-4">Add the smithing rules from the anvil GUI, then click Calculate.</p>
+            <p className="text-sm text-gray-400 mb-4">Add the smithing rules (max 3) from the anvil GUI, then click Calculate.</p>
             
             {calcInstructions.map((inst) => (
                 <div key={inst.id} className="flex gap-2 mb-2 items-center">
-                    <select 
-                        value={inst.action}
-                        onChange={(e) => updateCalcInstruction(inst.id, 'action', e.target.value)}
-                        className="bg-gray-800 border border-gray-700 rounded p-2 text-sm flex-1"
-                    >
-                        {CALC_ACTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                    </select>
+                    <ActionDropdown 
+                        value={inst.action} 
+                        onChange={(val) => updateCalcInstruction(inst.id, 'action', val)} 
+                        options={CALC_ACTIONS}
+                    />
                     <select 
                         value={inst.priority}
                         onChange={(e) => updateCalcInstruction(inst.id, 'priority', e.target.value)}
@@ -157,16 +160,18 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
                 </div>
             ))}
             
-            <button 
-                onClick={addCalcInstruction}
-                className="w-full py-2 border-2 border-dashed border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 rounded mb-4 text-sm"
-            >
-                + Add Rule
-            </button>
+            {calcInstructions.length < 3 && (
+                <button 
+                    onClick={addCalcInstruction}
+                    className="w-full py-2 border-2 border-dashed border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 rounded mb-4 text-sm"
+                >
+                    + Add Rule
+                </button>
+            )}
 
             <button
                 onClick={handleCalculate}
-                className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold"
+                className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold mt-2"
             >
                 Calculate Sequence
             </button>
