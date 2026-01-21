@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ACTION_ICONS, ACTION_LABELS } from '../types';
 import type { AnvilRecipe, AnvilAction } from '../types';
 import { ActionSelector } from './ActionSelector';
-import { calculateSequence, CalculatorInstruction, Priority, CalculatorAction } from '../utils/calculator';
+import { calculateSequence } from '../utils/calculator';
+import type { CalculatorInstruction, Priority, CalculatorAction } from '../utils/calculator';
 
 interface RecipeEditorProps {
   initialRecipe?: AnvilRecipe;

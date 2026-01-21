@@ -1,4 +1,4 @@
-import { AnvilAction } from '../types';
+import type { AnvilAction } from '../types';
 
 export type CalculatorAction = AnvilAction | 'hit';
 
