@@ -1,10 +1,30 @@
 import { ACTION_ICONS, ACTION_LABELS } from '../types';
-import type { AnvilRecipe } from '../types';
+import type { AnvilRecipe, AnvilAction } from '../types';
 
 interface RecipeListProps {
   recipes: AnvilRecipe[];
   onEdit: (recipe: AnvilRecipe) => void;
   onDelete: (id: string) => void;
+}
+
+function compressSteps(steps: AnvilAction[]) {
+  const compressed: { action: AnvilAction; count: number }[] = [];
+  if (steps.length === 0) return compressed;
+
+  let current = steps[0];
+  let count = 1;
+
+  for (let i = 1; i < steps.length; i++) {
+    if (steps[i] === current) {
+      count++;
+    } else {
+      compressed.push({ action: current, count });
+      current = steps[i];
+      count = 1;
+    }
+  }
+  compressed.push({ action: current, count });
+  return compressed;
 }
 
 export function RecipeList({ recipes, onEdit, onDelete }: RecipeListProps) {
@@ -39,15 +59,21 @@ export function RecipeList({ recipes, onEdit, onDelete }: RecipeListProps) {
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-1 mt-3">
-            {recipe.steps.map((step, index) => (
-              <img
-                key={index}
-                src={ACTION_ICONS[step]}
-                alt={ACTION_LABELS[step]}
-                className="w-8 h-8 object-contain bg-gray-900 rounded p-0.5"
-                title={`${index + 1}. ${ACTION_LABELS[step]}`}
-              />
+          <div className="flex flex-wrap gap-2 mt-3">
+            {compressSteps(recipe.steps).map((group, index) => (
+              <div key={index} className="relative">
+                  <img
+                    src={ACTION_ICONS[group.action]}
+                    alt={ACTION_LABELS[group.action]}
+                    className="w-10 h-10 object-contain bg-gray-900 rounded p-1"
+                    title={`${ACTION_LABELS[group.action]}${group.count > 1 ? ` x${group.count}` : ''}`}
+                  />
+                  {group.count > 1 && (
+                      <span className="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-gray-800 min-w-[1.25rem] text-center">
+                          {group.count}
+                      </span>
+                  )}
+              </div>
             ))}
           </div>
         </div>
