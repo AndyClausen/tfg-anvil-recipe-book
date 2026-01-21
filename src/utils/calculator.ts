@@ -22,11 +22,11 @@ const ACTION_VALUES: Record<string, number> = {
 };
 
 // Generic hits resolve to these for optimization
-const HIT_OPTIONS: AnvilAction[] = ['hit_light', 'hit_medium', 'hit_hard'];
+// const HIT_OPTIONS: AnvilAction[] = ['hit_light', 'hit_medium', 'hit_hard'];
 
 export function calculateSequence(targetValue: number, instructions: CalculatorInstruction[]): AnvilAction[] | null {
   // 1. Resolve Generic Hits and Calculate Instruction Sum
-  let resolvedInstructions: { action: AnvilAction; priority: Priority }[] = [];
+  const resolvedInstructions: { action: AnvilAction; priority: Priority }[] = [];
   let currentSum = 0;
   
   // Helper to get value
