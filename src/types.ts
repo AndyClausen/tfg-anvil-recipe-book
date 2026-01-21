@@ -22,9 +22,20 @@ export const ACTION_LABELS: Record<AnvilAction, string> = {
   draw: 'Draw',
 };
 
+export interface Category {
+  id: string;
+  name: string;
+}
+
 export interface AnvilRecipe {
   id: string;
   name: string;
   steps: AnvilAction[];
   targetValue?: number;
+  categoryId?: string;
+}
+
+export interface ExportData {
+  recipes: AnvilRecipe[];
+  categories: Category[];
 }

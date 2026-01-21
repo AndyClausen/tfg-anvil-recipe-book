@@ -5,7 +5,19 @@ import { RecipeList } from './components/RecipeList';
 import type { AnvilRecipe } from './types';
 
 function App() {
-  const { recipes, addRecipe, updateRecipe, deleteRecipe, importRecipes, exportRecipes } = useRecipes();
+  const { 
+    recipes, 
+    categories,
+    addRecipe, 
+    updateRecipe, 
+    deleteRecipe, 
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    importRecipes, 
+    exportRecipes 
+  } = useRecipes();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [currentRecipe, setCurrentRecipe] = useState<AnvilRecipe | undefined>(undefined);
   const [showImport, setShowImport] = useState(false);
@@ -105,14 +117,20 @@ function App() {
           {isEditing ? (
             <RecipeEditor
               initialRecipe={currentRecipe}
+              categories={categories}
+              onAddCategory={addCategory}
               onSave={handleSave}
               onCancel={handleCancel}
             />
           ) : (
             <RecipeList
               recipes={recipes}
+              categories={categories}
               onEdit={handleEdit}
               onDelete={deleteRecipe}
+              onUpdateRecipe={updateRecipe}
+              onUpdateCategory={updateCategory}
+              onDeleteCategory={deleteCategory}
             />
           )}
         </main>

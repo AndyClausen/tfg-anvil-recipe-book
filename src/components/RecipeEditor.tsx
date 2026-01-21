@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ACTION_ICONS, ACTION_LABELS } from '../types';
-import type { AnvilRecipe, AnvilAction } from '../types';
+import type { AnvilRecipe, AnvilAction, Category } from '../types';
 import { ActionSelector } from './ActionSelector';
 import { calculateSequence } from '../utils/calculator';
 import type { CalculatorInstruction, Priority, CalculatorAction } from '../utils/calculator';
@@ -8,6 +8,8 @@ import { ActionDropdown } from './ActionDropdown';
 
 interface RecipeEditorProps {
   initialRecipe?: AnvilRecipe;
+  categories: Category[];
+  onAddCategory: (name: string) => string;
   onSave: (recipe: AnvilRecipe) => void;
   onCancel: () => void;
 }
@@ -32,10 +34,13 @@ const PRIORITIES: { label: string; value: Priority }[] = [
   { label: 'Any', value: 'any' },
 ];
 
-export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorProps) {
+export function RecipeEditor({ initialRecipe, categories, onAddCategory, onSave, onCancel }: RecipeEditorProps) {
   const [name, setName] = useState(initialRecipe?.name || '');
   const [targetValue, setTargetValue] = useState<number | string>(initialRecipe?.targetValue || '');
   const [steps, setSteps] = useState<AnvilAction[]>(initialRecipe?.steps || []);
+  const [categoryId, setCategoryId] = useState<string>(initialRecipe?.categoryId || '');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   
   // Calculator State - Default to true if creating new recipe (no steps yet)
   const [showCalculator, setShowCalculator] = useState(!initialRecipe || initialRecipe.steps.length === 0);
@@ -59,7 +64,17 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
       name,
       targetValue: targetValue ? Number(targetValue) : undefined,
       steps,
+      categoryId: categoryId || undefined,
     });
+  };
+
+  const handleCreateCategory = () => {
+      if (newCategoryName.trim()) {
+          const newId = onAddCategory(newCategoryName.trim());
+          setCategoryId(newId);
+          setIsCreatingCategory(false);
+          setNewCategoryName('');
+      }
   };
 
   const addCalcInstruction = () => {
@@ -129,6 +144,55 @@ export function RecipeEditor({ initialRecipe, onSave, onCancel }: RecipeEditorPr
           className="w-full bg-gray-900 border border-gray-700 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none"
           placeholder="e.g. 50"
         />
+      </div>
+
+      <div className="mb-4">
+          <label className="block text-sm font-medium mb-1">Category</label>
+          {!isCreatingCategory ? (
+            <div className="flex gap-2">
+                <select 
+                    value={categoryId} 
+                    onChange={(e) => {
+                        if (e.target.value === 'NEW') {
+                            setIsCreatingCategory(true);
+                        } else {
+                            setCategoryId(e.target.value);
+                        }
+                    }}
+                    className="w-full bg-gray-900 border border-gray-700 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                >
+                    <option value="">Unsorted</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    <option value="NEW">+ Create New Category...</option>
+                </select>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+                <input 
+                    type="text" 
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="New Category Name"
+                    className="flex-1 bg-gray-900 border border-gray-700 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    autoFocus
+                />
+                <button 
+                    onClick={handleCreateCategory}
+                    className="px-3 bg-blue-600 hover:bg-blue-500 rounded text-white"
+                >
+                    Add
+                </button>
+                <button 
+                    onClick={() => {
+                        setIsCreatingCategory(false);
+                        setCategoryId('');
+                    }}
+                    className="px-3 bg-gray-700 hover:bg-gray-600 rounded text-white"
+                >
+                    Cancel
+                </button>
+            </div>
+          )}
       </div>
 
       {showCalculator ? (
