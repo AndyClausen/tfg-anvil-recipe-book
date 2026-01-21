@@ -128,6 +128,7 @@ function App() {
               categories={categories}
               onEdit={handleEdit}
               onDelete={deleteRecipe}
+              onAddCategory={addCategory}
               onUpdateRecipe={updateRecipe}
               onUpdateCategory={updateCategory}
               onDeleteCategory={deleteCategory}

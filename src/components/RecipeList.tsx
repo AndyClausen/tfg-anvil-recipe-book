@@ -7,6 +7,7 @@ interface RecipeListProps {
   categories: Category[];
   onEdit: (recipe: AnvilRecipe) => void;
   onDelete: (id: string) => void;
+  onAddCategory: (name: string) => string;
   onUpdateRecipe: (recipe: AnvilRecipe) => void;
   onUpdateCategory: (id: string, name: string) => void;
   onDeleteCategory: (id: string) => void;
@@ -34,13 +35,24 @@ function compressSteps(steps: AnvilAction[]) {
 
 export function RecipeList({ 
     recipes, 
-    categories, 
+    categories = [], 
     onEdit, 
     onDelete, 
+    onAddCategory,
     onUpdateRecipe,
     onUpdateCategory,
     onDeleteCategory 
 }: RecipeListProps) {
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const handleCreateCategory = () => {
+    if (newCategoryName.trim()) {
+        onAddCategory(newCategoryName.trim());
+        setIsCreatingCategory(false);
+        setNewCategoryName('');
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, recipeId: string) => {
       e.dataTransfer.setData('recipeId', recipeId);
@@ -158,6 +170,41 @@ export function RecipeList({
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        {!isCreatingCategory ? (
+            <button 
+                onClick={() => setIsCreatingCategory(true)}
+                className="text-sm bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2 rounded text-gray-300 transition-colors"
+            >
+                + New Category
+            </button>
+        ) : (
+            <div className="flex gap-2 w-full md:w-auto">
+                <input 
+                    type="text" 
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="Category Name"
+                    className="flex-1 md:w-64 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    autoFocus
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
+                />
+                <button 
+                    onClick={handleCreateCategory}
+                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm"
+                >
+                    Add
+                </button>
+                <button 
+                    onClick={() => setIsCreatingCategory(false)}
+                    className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded text-sm"
+                >
+                    Cancel
+                </button>
+            </div>
+        )}
+      </div>
+
       {categories?.map(renderCategory)}
 
       <details open className="group mb-4 border border-gray-700 rounded-lg bg-gray-800/50 overflow-hidden">

@@ -34,7 +34,13 @@ const PRIORITIES: { label: string; value: Priority }[] = [
   { label: 'Any', value: 'any' },
 ];
 
-export function RecipeEditor({ initialRecipe, categories, onAddCategory, onSave, onCancel }: RecipeEditorProps) {
+export function RecipeEditor({ 
+  initialRecipe, 
+  categories = [], 
+  onAddCategory, 
+  onSave, 
+  onCancel 
+}: RecipeEditorProps) {
   const [name, setName] = useState(initialRecipe?.name || '');
   const [targetValue, setTargetValue] = useState<number | string>(initialRecipe?.targetValue || '');
   const [steps, setSteps] = useState<AnvilAction[]>(initialRecipe?.steps || []);
@@ -70,10 +76,14 @@ export function RecipeEditor({ initialRecipe, categories, onAddCategory, onSave,
 
   const handleCreateCategory = () => {
       if (newCategoryName.trim()) {
-          const newId = onAddCategory(newCategoryName.trim());
-          setCategoryId(newId);
-          setIsCreatingCategory(false);
-          setNewCategoryName('');
+          if (typeof onAddCategory === 'function') {
+              const newId = onAddCategory(newCategoryName.trim());
+              setCategoryId(newId);
+              setIsCreatingCategory(false);
+              setNewCategoryName('');
+          } else {
+              alert('Error: Category creation is not available. Please try again.');
+          }
       }
   };
 
@@ -162,7 +172,7 @@ export function RecipeEditor({ initialRecipe, categories, onAddCategory, onSave,
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                     <option value="">Unsorted</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {categories?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     <option value="NEW">+ Create New Category...</option>
                 </select>
             </div>
