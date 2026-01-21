@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/tfg-anvil-repice-book/',
+  base: '/tfg-anvil-recipe-book/',
   plugins: [
     react(),
     tailwindcss(),
