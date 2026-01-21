@@ -27,25 +27,18 @@ export function useRecipes() {
     setRecipes((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const importRecipes = (jsonString: string) => {
+  const importRecipes = (encodedString: string) => {
     try {
-        // Try parsing as raw JSON first
         let newRecipes: AnvilRecipe[] = [];
         try {
-            newRecipes = JSON.parse(jsonString);
-        } catch {
-             // If that fails, try base64 decode
-             try {
-                newRecipes = JSON.parse(atob(jsonString));
-             } catch (e) {
-                 console.error("Failed to parse import string", e);
-                 alert("Invalid import string");
-                 return;
-             }
+            newRecipes = JSON.parse(atob(encodedString));
+        } catch (e) {
+            console.error("Failed to decode import string", e);
+            alert("Invalid import string. Please ensure it is a valid Base64 encoded JSON.");
+            return;
         }
         
         if (!Array.isArray(newRecipes)) {
-             // Maybe it's a single recipe?
              if(typeof newRecipes === 'object') {
                  newRecipes = [newRecipes];
              } else {
@@ -54,12 +47,24 @@ export function useRecipes() {
              }
         }
 
-        // Basic validation could go here
       setRecipes((prev) => {
-          // Merge? Or replace? Let's just append for now, or maybe check for dupes by ID?
-          // Let's replace ID to be safe if they collide, or just trust the user.
-          // For simplicity, let's append.
-          return [...prev, ...newRecipes];
+          const existingIds = new Set(prev.map(r => r.id));
+          const uniqueNewRecipes = newRecipes.filter(r => {
+              if (!r.id) {
+                  // If incoming recipe has no ID, generate one?
+                  // Or just warn? Let's generate one to be nice.
+                  r.id = crypto.randomUUID();
+              }
+              return !existingIds.has(r.id);
+          });
+          
+          if (uniqueNewRecipes.length === 0) {
+              alert("No new recipes imported (duplicates ignored).");
+              return prev;
+          }
+          
+          alert(`Imported ${uniqueNewRecipes.length} new recipes.`);
+          return [...prev, ...uniqueNewRecipes];
       });
     } catch (e) {
       console.error('Failed to import recipes', e);

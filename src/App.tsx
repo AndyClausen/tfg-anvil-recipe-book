@@ -86,33 +86,14 @@ function App() {
         {showImport && (
             <div className="mb-8 p-4 bg-gray-800 rounded border border-gray-700">
                 <h3 className="font-bold mb-2">Import Recipes</h3>
-                <p className="text-sm text-gray-400 mb-2">Paste a JSON string/Base64, or upload a file.</p>
+                <p className="text-sm text-gray-400 mb-2">Paste a Base64 encoded recipe list.</p>
                 <textarea 
                     className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm font-mono mb-2"
                     rows={3}
                     value={importString}
                     onChange={(e) => setImportString(e.target.value)}
-                    placeholder="Paste data here..."
+                    placeholder="Paste Base64 string here..."
                 />
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm text-gray-400">Or upload:</span>
-                    <input 
-                        type="file" 
-                        accept=".json,.txt"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                                const reader = new FileReader();
-                                reader.onload = (ev) => {
-                                    const text = ev.target?.result as string;
-                                    setImportString(text);
-                                };
-                                reader.readAsText(file);
-                            }
-                        }}
-                        className="text-sm text-gray-400 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600"
-                    />
-                </div>
                 <div className="flex justify-end gap-2">
                     <button onClick={() => setShowImport(false)} className="px-3 py-1 bg-gray-700 rounded text-sm">Cancel</button>
                     <button onClick={handleImportSubmit} className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-sm">Import</button>
