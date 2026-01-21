@@ -154,11 +154,11 @@ export function RecipeList({
       );
   };
 
-  const unsortedRecipes = recipes.filter(r => !r.categoryId || !categories.find(c => c.id === r.categoryId));
+  const unsortedRecipes = recipes.filter(r => !r.categoryId || !categories?.find(c => c.id === r.categoryId));
 
   return (
     <div className="space-y-6">
-      {categories.map(renderCategory)}
+      {categories?.map(renderCategory)}
 
       <details open className="group mb-4 border border-gray-700 rounded-lg bg-gray-800/50 overflow-hidden">
           <summary 
