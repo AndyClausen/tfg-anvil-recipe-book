@@ -47,24 +47,22 @@ export function useRecipes() {
              }
         }
 
-      setRecipes((prev) => {
-          const existingIds = new Set(prev.map(r => r.id));
-          const uniqueNewRecipes = newRecipes.filter(r => {
-              if (!r.id) {
-                  r.id = crypto.randomUUID();
-              }
-              return !existingIds.has(r.id);
-          });
-          
-          if (uniqueNewRecipes.length === 0) {
-               // Use setTimeout to break out of the render cycle for the alert
-               setTimeout(() => alert("No new recipes imported (duplicates ignored)."), 0);
-               return prev;
-          }
-          
-          setTimeout(() => alert(`Imported ${uniqueNewRecipes.length} new recipes.`), 0);
-          return [...prev, ...uniqueNewRecipes];
-      });
+        const existingIds = new Set(recipes.map(r => r.id));
+        const uniqueNewRecipes = newRecipes.filter(r => {
+            if (!r.id) {
+                r.id = crypto.randomUUID();
+            }
+            return !existingIds.has(r.id);
+        });
+
+        if (uniqueNewRecipes.length === 0) {
+            alert("No new recipes imported (duplicates ignored).");
+            return;
+        }
+
+        setRecipes((prev) => [...prev, ...uniqueNewRecipes]);
+        alert(`Imported ${uniqueNewRecipes.length} new recipes.`);
+
     } catch (e) {
       console.error('Failed to import recipes', e);
       alert('Failed to import recipes');
