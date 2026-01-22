@@ -54,6 +54,10 @@ export function useRecipes() {
     setCategories(prev => prev.filter(c => c.id !== id));
   };
 
+  const reorderCategories = (newCategories: Category[]) => {
+    setCategories(newCategories);
+  };
+
   const importRecipes = (encodedString: string) => {
     try {
         let parsedData: any;
@@ -136,6 +140,7 @@ export function useRecipes() {
       addCategory,
       updateCategory,
       deleteCategory,
+      reorderCategories,
       importRecipes, 
       exportRecipes 
   };

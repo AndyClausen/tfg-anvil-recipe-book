@@ -14,6 +14,7 @@ function App() {
     addCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
     importRecipes, 
     exportRecipes 
   } = useRecipes();
@@ -132,6 +133,7 @@ function App() {
               onUpdateRecipe={updateRecipe}
               onUpdateCategory={updateCategory}
               onDeleteCategory={deleteCategory}
+              onReorderCategories={reorderCategories}
             />
           )}
         </main>

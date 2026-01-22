@@ -1,4 +1,21 @@
 import { useState } from 'react';
+import {
+  DndContext,  
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { ACTION_ICONS, ACTION_LABELS } from '../types';
 import type { AnvilRecipe, AnvilAction, Category } from '../types';
 
@@ -11,9 +28,10 @@ interface RecipeListProps {
   onUpdateRecipe: (recipe: AnvilRecipe) => void;
   onUpdateCategory: (id: string, name: string) => void;
   onDeleteCategory: (id: string) => void;
+  onReorderCategories: (categories: Category[]) => void;
 }
 
-function compressSteps(steps: AnvilAction[]) {
+  const compressSteps = (steps: AnvilAction[]) => {
   const compressed: { action: AnvilAction; count: number }[] = [];
   if (steps.length === 0) return compressed;
 
@@ -31,6 +49,32 @@ function compressSteps(steps: AnvilAction[]) {
   }
   compressed.push({ action: current, count });
   return compressed;
+};
+
+// Sortable Item Wrapper
+function SortableCategoryItem({ id, children }: { id: string, children: (handleProps: any) => React.ReactNode }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 50 : undefined,
+        position: 'relative' as const,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="mb-4">
+            {children({ attributes, listeners })}
+        </div>
+    );
 }
 
 export function RecipeList({ 
@@ -41,10 +85,35 @@ export function RecipeList({
     onAddCategory,
     onUpdateRecipe,
     onUpdateCategory,
-    onDeleteCategory 
+    onDeleteCategory,
+    onReorderCategories
 }: RecipeListProps) {
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+        const oldIndex = categories.findIndex((c) => c.id === active.id);
+        const newIndex = categories.findIndex((c) => c.id === over.id);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+             onReorderCategories(arrayMove(categories, oldIndex, newIndex));
+        }
+    }
+  };
 
   const handleCreateCategory = () => {
     if (newCategoryName.trim()) {
@@ -121,48 +190,60 @@ export function RecipeList({
       </div>
   );
 
-  const renderCategory = (category: Category) => {
+  const renderCategory = (category: Category, handleProps: any) => {
       const categoryRecipes = recipes.filter(r => r.categoryId === category.id);
       
       return (
-          <details key={category.id} open className="group mb-4 border border-gray-700 rounded-lg bg-gray-800/50 overflow-hidden">
-              <summary 
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, category.id)}
-                className="flex items-center justify-between p-4 cursor-pointer bg-gray-800 hover:bg-gray-750 select-none list-none"
-              >
-                  <div className="flex items-center gap-2 font-bold text-lg">
-                      <span className="transform group-open:rotate-90 transition-transform text-gray-400">▶</span>
-                      <EditableLabel 
-                        value={category.name} 
-                        onSave={(newName) => onUpdateCategory(category.id, newName)} 
-                      />
-                      <span className="text-sm text-gray-500 font-normal">({categoryRecipes.length})</span>
-                  </div>
-                  <button 
-                    onClick={(e) => {
-                        e.preventDefault(); // Prevent accordion toggle
-                        if(confirm('Delete category? Recipes will become unsorted.')) onDeleteCategory(category.id);
-                    }}
-                    className="text-gray-500 hover:text-red-400 text-sm px-2"
-                  >
-                      ✕
-                  </button>
-              </summary>
-              <div 
-                className="p-4 bg-gray-900/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, category.id)}
-              >
-                  {categoryRecipes.length === 0 ? (
-                      <div className="col-span-full text-center text-gray-500 py-8 border-2 border-dashed border-gray-800 rounded">
-                          Drag recipes here
-                      </div>
-                  ) : (
-                      categoryRecipes.map(renderRecipeCard)
-                  )}
-              </div>
-          </details>
+          <div className="flex flex-col mb-4 border border-gray-700 rounded-lg bg-gray-800/50 overflow-hidden">
+             <div className="flex bg-gray-800 hover:bg-gray-750">
+                <div 
+                    {...handleProps.attributes} 
+                    {...handleProps.listeners}
+                    className="flex items-center justify-center pl-3 pr-2 cursor-grab text-gray-500 hover:text-gray-300 border-r border-gray-700/50"
+                    title="Drag to reorder"
+                >
+                    ⋮⋮
+                </div>
+                <details open className="flex-1 group bg-transparent">
+                    <summary 
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, category.id)}
+                        className="flex items-center justify-between p-4 cursor-pointer select-none list-none"
+                    >
+                        <div className="flex items-center gap-2 font-bold text-lg">
+                            <span className="transform group-open:rotate-90 transition-transform text-gray-400">▶</span>
+                            <EditableLabel 
+                                value={category.name} 
+                                onSave={(newName) => onUpdateCategory(category.id, newName)} 
+                            />
+                            <span className="text-sm text-gray-500 font-normal">({categoryRecipes.length})</span>
+                        </div>
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault(); // Prevent accordion toggle
+                                if(confirm('Delete category? Recipes will become unsorted.')) onDeleteCategory(category.id);
+                            }}
+                            className="text-gray-500 hover:text-red-400 text-sm px-2"
+                        >
+                            ✕
+                        </button>
+                    </summary>
+                    <div 
+                        className="p-4 bg-gray-900/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-gray-700"
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, category.id)}
+                    >
+                        {categoryRecipes.length === 0 ? (
+                            <div className="col-span-full text-center text-gray-500 py-8 border-2 border-dashed border-gray-800 rounded">
+                                Drag recipes here
+                            </div>
+                        ) : (
+                            categoryRecipes.map(renderRecipeCard)
+                        )}
+                    </div>
+                </details>
+             </div>
+          </div>
       );
   };
 
@@ -205,7 +286,22 @@ export function RecipeList({
         )}
       </div>
 
-      {categories?.map(renderCategory)}
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext 
+            items={categories}
+            strategy={verticalListSortingStrategy}
+        >
+            {categories?.map((category) => (
+                <SortableCategoryItem key={category.id} id={category.id}>
+                    {(handleProps) => renderCategory(category, handleProps)}
+                </SortableCategoryItem>
+            ))}
+        </SortableContext>
+      </DndContext>
 
       <details open className="group mb-4 border border-gray-700 rounded-lg bg-gray-800/50 overflow-hidden">
           <summary 
